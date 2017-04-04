@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/MP_option"
+        android:title="@string/MP_movies"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom"/>
+ <item
+        android:id="@+id/TR_option"
+        android:title="@string/TR_movies"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/favorite_option"
+        android:title="@string/favor_movies"
+        app:showAsAction="ifRoom"/>
+</menu>

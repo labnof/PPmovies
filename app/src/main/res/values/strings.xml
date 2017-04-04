@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">PPmovies</string>
+    <string name="themoviedbApi_key">insert Key here</string>
+
+    <!--String stating that an error has occurred-->
+    <string name="error_message">Failed to get results. Please try check network connection. </string>
+    <!--Navigation bar item name-->
+    <string name="sort_spinner">Sort Options</string>
+    <!--Spinners items names-->
+
+    <string name="MP_movies">Most Popular Movies</string>
+    <string name="TR_movies">Top rated Movies</string>
+    <string name="favor_movies">My favorite Movies</string>
+
+</resources>
