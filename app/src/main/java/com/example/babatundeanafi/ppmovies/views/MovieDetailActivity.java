@@ -7,7 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.babatundeanafi.ppmovies.MainActivity;
-import com.example.babatundeanafi.ppmovies.Model.Movie;
+import com.example.babatundeanafi.ppmovies.model.Movie;
 import com.example.babatundeanafi.ppmovies.R;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
 import com.squareup.picasso.Picasso;
@@ -30,16 +30,17 @@ public class MovieDetailActivity extends AppCompatActivity {
         TextView mReleaseDate = (TextView) findViewById(R.id.textview_movie_year);
         TextView mVoteAverage = (TextView) findViewById(R.id.textview_ratings);
         TextView mOverview = (TextView) findViewById(R.id.textview_overview);
-        ImageView mImageView = (ImageView)findViewById(R.id.imageview_poster);
+        ImageView mImageView = (ImageView) findViewById(R.id.imageview_poster);
 
 
-        Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
         context = getApplication();
 
         mTittle.setText(mMovie.getTitle());
         mReleaseDate.setText(mMovie.getRelease_date());
-        mVoteAverage.setText(Float.toString(mMovie.getVote_average()) + "/10");
-        mOverview.setText(mMovie.getOverview() );
+        mVoteAverage.setText(String.format("%s%s", Float.toString(mMovie.getVote_average()), getString(R.string.hAverageVote)));
+        mOverview.setText(mMovie.getOverview());
         String mPosterPath = MakePosterPath(mMovie);
         Picasso.with(context).load(mPosterPath).into(mImageView);
     }
@@ -53,10 +54,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 
 
             URL url = NetworkUtils.buildImageUrl(m.getPoster_path());
-            String sd = url.toString();
+            return url.toString();
 
-
-            return sd;
         }
         return null;
 

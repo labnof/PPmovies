@@ -5,9 +5,12 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,8 +21,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.babatundeanafi.ppmovies.Model.Movie;
-import com.example.babatundeanafi.ppmovies.Model.RequestResult;
+import com.example.babatundeanafi.ppmovies.model.Movie;
+import com.example.babatundeanafi.ppmovies.model.RequestResult;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.MoviesPostersAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
@@ -34,26 +37,75 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
 
-public class MainActivity extends AppCompatActivity{
-
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
 
 
     public static final String MOVIE_DETAIL = "com.example.PPmovies.Detail";
-    private static final String PP_URL = "popularity.desc";
-    private static final String VOTE_AVE_URL = "vote_average.desc";
-    private String Api_key;
+    public static final String MOVIES_LOADER_EXTRA = "com.example.PPmovies.MoviesLoader";
+    private static final int MOVIES_DB_LOADER = 29;//Loader indentify
+    private static final String SORT_BY_PP_URL = "http://api.themoviedb.org/3/movie/popular?";
+    private static final String SORT_BY_VOTE_AVE_URL = "http://api.themoviedb.org/3/movie/top_rated?";
     boolean mNetworkAvailable = FALSE;
 
-
+    private String mMovieDBApiKey;
     private TextView mErrorMessageDisplay; //TextView variable for the error message display
     private ProgressBar mLoadingIndicator; //ProgressBar variable to show and hide the progress bar
     private GridView mGridView;
     private Context mContext;
 
+    private String getJsonSortResult(String url) {
+        //methos return Json result from network
+
+        URL sortUrl = NetworkUtils.ValidateUrl(url);
+
+        String themoviedbSortResults = null;
+        try {
+            themoviedbSortResults = NetworkUtils.getResponseFromHttpUrl(sortUrl);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return themoviedbSortResults;
+
+    }
+
+    private Movie[] getMoviesLinks(String NetworkResult) {
+        //Method returns an the array of movies contained in the network result
+
+        Movie[] movies;
+        RequestResult requestResult;
+
+        if (NetworkResult != null && !NetworkResult.equals("")) {
 
 
+            requestResult = JsonToMovieObjs.ConvertToResultObject(NetworkResult);
+            movies = requestResult.getResults();
+            return movies;
+        }
 
 
+        return null;
+    }
+
+    private ArrayList<String> getPosterPaths(Movie[] m) {
+
+        ArrayList<String> PosterPaths = new ArrayList<>();
+
+
+        if (m.length != 0) {
+
+
+            for (Movie movies : m) {
+
+                URL url = NetworkUtils.buildImageUrl(movies.getPoster_path());
+                String sd = url.toString();
+                PosterPaths.add(sd);
+            }
+
+            return PosterPaths;
+        }
+        return null;
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,40 +125,21 @@ public class MainActivity extends AppCompatActivity{
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
 
-
-
         Resources res = getResources();//get ApiKey from resource
-        Api_key = res.getString(R.string.themoviedbApi_key);
+        mMovieDBApiKey = res.getString(R.string.themoviedbApi_key);
         mContext = this.getApplication();
 
 
         // checks if internet is available and deplays posters and shows error if no internet
-        mNetworkAvailable=isNetworkAvailable();
-        if(  mNetworkAvailable == TRUE){
-            getSortMovies(PP_URL);//gets the most popular movies
-        }
-        else{
+        mNetworkAvailable = isNetworkAvailable();
+        if (mNetworkAvailable == TRUE) {
+            getSortMovies(SORT_BY_PP_URL);//gets the most popular movies
+        } else {
             showErrorMessage();
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
-
 
     /*
     The getActiveNetworkInfo() method of ConnectivityManager returns a NetworkInfo instance
@@ -123,26 +156,104 @@ public class MainActivity extends AppCompatActivity{
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-
     // get sort movies from network
-    private void getSortMovies(String sortBy){
+    private void getSortMovies(String sortBy) {
+        //Loader
 
-        /* First, make sure the error is invisible */
-        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-
-        URL url1 = buildSortUrl( sortBy, Api_key);
+        URL url1 = buildSortUrl(sortBy, mMovieDBApiKey);
         URL url = NetworkUtils.ValidateUrl(url1.toString());
-        mGridView = (GridView)findViewById(R.id.usage_example_gridview);
+        mGridView = (GridView) findViewById(R.id.usage_example_gridview);
 
-        //execute AsykTask
-        themoviedbSortTask tm =  new themoviedbSortTask();
-        tm.execute(url);
+        Bundle queryBundle = new Bundle();
+        queryBundle.putString(MOVIES_LOADER_EXTRA, url.toString());
+
+        LoaderManager mLoaderManager = getSupportLoaderManager();
+        Loader<Movie[]> mLoader = mLoaderManager.getLoader(MOVIES_DB_LOADER);
 
 
+        if (mLoader == null) {
+            mLoaderManager.initLoader(MOVIES_DB_LOADER, queryBundle, this).forceLoad();
 
+        } else {
+            mLoaderManager.restartLoader(MOVIES_DB_LOADER, queryBundle, this).forceLoad();
+        }
     }
 
+    @Override
+    public Loader<Movie[]> onCreateLoader(int id, final Bundle args) {
+        // LoaderManager.LoaderCallbacks<Movie> Starts
 
+        return new AsyncTaskLoader<Movie[]>(this) {
+            @Override
+            public Movie[] loadInBackground() {
+                String MoviesURLString = args.getString(MOVIES_LOADER_EXTRA);
+                if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
+                    return null;
+                } else {
+
+
+                    String JsonSortResult = getJsonSortResult(MoviesURLString);
+                    return getMoviesLinks(JsonSortResult);
+
+                }
+
+
+            }
+
+            @Override
+            public void onStartLoading() {
+                super.onStartLoading();
+                if (args == null) {
+                    return;
+                }
+                mLoadingIndicator.setVisibility(View.VISIBLE);
+
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
+
+        ArrayList<String> results;
+
+
+        if (movies != null && movies.length != 0) {
+
+            results = getPosterPaths(movies);
+
+
+            String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
+            posterArray = results != null ? results.toArray(posterArray) : new String[0];
+
+            mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+
+            //Grid View setOnItemClickListener that leads to detail page
+            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v,
+                                        int position, long id) {
+
+
+                    PacelableMethod(movies, position);
+
+
+                    Toast.makeText(MainActivity.this, "" + position,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        } else {
+            //If the array list of movies poster data is null, show the error message
+            showErrorMessage();
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Movie[]> loader) {
+
+    }
 
     private void showErrorMessage() {
         /* First, hide the currently visible data */
@@ -150,10 +261,6 @@ public class MainActivity extends AppCompatActivity{
         /* Then, show the error */
         mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
-
-
-
-
 
     //Menu
     @Override
@@ -165,17 +272,16 @@ public class MainActivity extends AppCompatActivity{
         return true;
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.MP_option:
-                getSortMovies(PP_URL);//gets the most popular movies
+                getSortMovies(SORT_BY_PP_URL);//gets the most popular movies
                 return true;
             case R.id.TR_option:
-                getSortMovies(VOTE_AVE_URL);//gets the top rated  movies
+                getSortMovies(SORT_BY_VOTE_AVE_URL);//gets the top rated  movies
                 return true;
             case R.id.favorite_option:
                 return true;
@@ -185,161 +291,19 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    public void PacelableMethod(Movie[] movies, int position) {
 
 
+        Movie mMovie = movies[position];
+        Intent mIntent = new Intent(this, MovieDetailActivity.class);
 
-    //Network AsyncTask
-    private class themoviedbSortTask extends AsyncTask<URL, Void, Movie[]> {
+        Bundle mBundle = new Bundle();
 
-        // COMPLETED (18) Within your AsyncTask, override the method onPreExecute and show the loading indicator
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
+        mBundle.putParcelable(MOVIE_DETAIL, mMovie);
+        mIntent.putExtras(mBundle);
 
+        startActivity(mIntent);
+    }
 
 
-        @Override
-        protected  Movie[] doInBackground(URL... urls) {
-
-            URL sortUrl = urls[0];
-
-                String JsonSortResult = getJsonSortResult(sortUrl.toString());
-                Movie[] movies = getMoviesLinks(JsonSortResult);
-
-
-            if (JsonSortResult != null &&!JsonSortResult.isEmpty()){
-                return movies;
-
-            }
-
-
-
-              return null;
-        }
-
-        @Override
-        protected void onPostExecute (final Movie[] movies) {
-
-            ArrayList<String> results;
-
-
-
-            if (movies != null && movies.length != 0) {
-
-                results = getPosterPaths(movies);
-
-
-                String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
-                posterArray = results != null ? results.toArray(posterArray) : new String[0];
-
-                mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
-                mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-
-                //Grid View setOnItemClickListener that leads to detail page
-                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    public void onItemClick(AdapterView<?> parent, View v,
-                                            int position, long id) {
-
-
-
-
-                        PacelableMethod(movies,position );
-
-
-
-
-
-                        Toast.makeText(MainActivity.this, "" + position,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            }
-
-            else {
-              //If the array list of movies poster data is null, show the error message
-                showErrorMessage();
-            }
-        }
-
-        public void PacelableMethod(Movie[] movies, int position){
-
-
-            Movie mMovie = movies[position];
-            Intent mIntent = new Intent(MainActivity.this, MovieDetailActivity.class);
-
-            Bundle mBundle = new Bundle();
-
-            mBundle.putParcelable(MOVIE_DETAIL, mMovie);
-            mIntent.putExtras(mBundle);
-
-            startActivity(mIntent);
-        }
-
-
-        private String getJsonSortResult(String url) {
-              //methos return Json result from network
-
-              URL sortUrl = NetworkUtils.ValidateUrl(url);
-
-              String themoviedbSortResults = null;
-              try {
-                  themoviedbSortResults = NetworkUtils.getResponseFromHttpUrl(sortUrl);
-              } catch (IOException e) {
-                  e.printStackTrace();
-              }
-              return themoviedbSortResults;
-
-          }
-
-            private Movie[] getMoviesLinks (String NetworkResult){
-                //Method returns an the array of movies contained in the network result
-
-                Movie[] movies;
-                RequestResult requestResult;
-
-                if (NetworkResult != null && !NetworkResult.equals("")) {
-
-
-                    requestResult = JsonToMovieObjs.ConvertToResultObject(NetworkResult);
-                    movies =requestResult.getResults();
-                    return movies;
-                }
-
-
-                return null;
-            }
-
-
-            private ArrayList<String> getPosterPaths (Movie[]m){
-
-                ArrayList<String>  PosterPaths = new ArrayList<>();
-
-
-
-                if (m.length != 0) {
-
-
-
-                    for (Movie movies :m) {
-
-                        URL url = NetworkUtils.buildImageUrl( movies.getPoster_path());
-                        String sd = url.toString();
-                        PosterPaths.add(sd);
-                    }
-
-                    return PosterPaths;
-                }
-                return null;
-
-            }
-
-
-
-
-        }
-
-      }
+}

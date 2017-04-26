@@ -4,8 +4,8 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.babatundeanafi.ppmovies.MainActivity"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    tools:context="com.example.babatundeanafi.ppmovies.MainActivity">
 
     <!-- TextView that you will show the user if there is an error loading content-->
 
@@ -16,23 +16,21 @@
         android:padding="16dp"
         android:text="@string/error_message"
         android:textSize="20sp"
-        android:visibility="invisible"
-        />
+        android:visibility="invisible" />
 
 
-    <GridView
+    <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/usage_example_gridview"
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:numColumns="2"/>
+        android:numColumns="2" />
 
 
     <!--ProgressBar to show the user content is loading-->
     <ProgressBar
         android:id="@+id/pb_loading_indicator"
-        android:layout_height="42dp"
         android:layout_width="42dp"
+        android:layout_height="42dp"
         android:layout_gravity="center"
         android:visibility="invisible" />
 

@@ -1,4 +1,4 @@
-package com.example.babatundeanafi.ppmovies.Model;
+package com.example.babatundeanafi.ppmovies.model;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

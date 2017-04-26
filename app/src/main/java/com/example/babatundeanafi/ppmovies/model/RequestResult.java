@@ -1,4 +1,4 @@
-package com.example.babatundeanafi.ppmovies.Model;
+package com.example.babatundeanafi.ppmovies.model;
 
 /**
  * Created by babatundeanafi on 23/02/2017.

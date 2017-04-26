@@ -26,15 +26,12 @@ public final class NetworkUtils {
     private static final String SORT_BASE_URL = "https://api.themoviedb.org/3/discover/movie?page=1&include_video=false&include_adult=false";
     private static final String SORT_BY = "sort_by";
 
-    private static final String SORT_BY_PP_URL = "https://api.themoviedb.org/3/discover/movie?page=1&include_video=false&include_adult=false&sort_by=popularity.desc&api_key=3334e3854b69a83e44ebd3febe80a082";
-    private static final String SORT_BY_VOTE_AVE_URL = "https://api.themoviedb.org/3/discover/movie?page=1&include_video=false&include_adult=false&sort_by=popularity.desc&api_key=3334e3854b69a83e44ebd3febe80a082";
 
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
 
 
     //quary parameter
     final static String QUERY_PARAM = "q";
-    //final static String EQUAL_PARAM = "=";
     final static String API_KEY_PARAM = "api_key";
     final static String APESANT_PARAM = "&";
 
@@ -68,8 +65,8 @@ public final class NetworkUtils {
         //Method to build the sorth URL
 
 
-        Uri builtUri = Uri.parse(SORT_BASE_URL).buildUpon()
-                .appendQueryParameter(SORT_BY,SortURL)
+        Uri builtUri = Uri.parse(SortURL).buildUpon()
+                //.appendQueryParameter(SORT_BY,SortURL)
                 .appendQueryParameter(API_KEY_PARAM, apIKey)
                 .build();
 
