@@ -21,11 +21,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.babatundeanafi.ppmovies.model.Movie;
-import com.example.babatundeanafi.ppmovies.model.RequestResult;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.MoviesPostersAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
+import com.example.babatundeanafi.ppmovies.model.Movie;
+import com.example.babatundeanafi.ppmovies.model.RequestResult;
 import com.example.babatundeanafi.ppmovies.views.MovieDetailActivity;
 
 import java.io.IOException;
@@ -38,6 +38,14 @@ import static java.lang.Boolean.TRUE;
 
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
+
+
+    //Loaders
+    private static final int NETWORK_MOVIE_LOADER_ID = 1;
+    private static final int DB_MOVIE_LOADER_ID = 2;
+
+
+
 
 
     public static final String MOVIE_DETAIL = "com.example.PPmovies.Detail";
@@ -140,6 +148,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mLoadingIndicator.setVisibility(View.VISIBLE);
+
+
+    }
 
     /*
     The getActiveNetworkInfo() method of ConnectivityManager returns a NetworkInfo instance
@@ -179,81 +194,99 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    @Override
-    public Loader<Movie[]> onCreateLoader(int id, final Bundle args) {
-        // LoaderManager.LoaderCallbacks<Movie> Starts
 
-        return new AsyncTaskLoader<Movie[]>(this) {
-            @Override
-            public Movie[] loadInBackground() {
-                String MoviesURLString = args.getString(MOVIES_LOADER_EXTRA);
-                if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
-                    return null;
-                } else {
+    // MovieDB lader  loads movies from the network
+
+    LoaderManager.LoaderCallbacks<Movie[]>
+
+    private LoaderManager.LoaderCallbacks<Movie[]> MovieLoaderListener
+            = new  LoaderManager.LoaderCallbacks<Movie[]>() {
+        @Override
+        public Loader<Movie[]> onCreateLoader(int id, final Bundle args) {
+            // LoaderManager.LoaderCallbacks<Movie> Starts
+
+            return new AsyncTaskLoader<Movie[]>(this) {
+                @Override
+                public Movie[] loadInBackground() {
+                    String MoviesURLString = args.getString(MOVIES_LOADER_EXTRA);
+                    if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
+                        return null;
+                    } else {
 
 
-                    String JsonSortResult = getJsonSortResult(MoviesURLString);
-                    return getMoviesLinks(JsonSortResult);
+                        String JsonSortResult = getJsonSortResult(MoviesURLString);
+                        return getMoviesLinks(JsonSortResult);
+
+                    }
+
 
                 }
 
+                @Override
+                public void onStartLoading() {
+                    super.onStartLoading();
+                    if (args == null) {
+                        return;
+                    }
+                    mLoadingIndicator.setVisibility(View.VISIBLE);
 
-            }
-
-            @Override
-            public void onStartLoading() {
-                super.onStartLoading();
-                if (args == null) {
-                    return;
                 }
-                mLoadingIndicator.setVisibility(View.VISIBLE);
-
-            }
-        };
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
-
-        ArrayList<String> results;
-
-
-        if (movies != null && movies.length != 0) {
-
-            results = getPosterPaths(movies);
-
-
-            String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
-            posterArray = results != null ? results.toArray(posterArray) : new String[0];
-
-            mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-
-            //Grid View setOnItemClickListener that leads to detail page
-            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v,
-                                        int position, long id) {
-
-
-                    PacelableMethod(movies, position);
-
-
-                    Toast.makeText(MainActivity.this, "" + position,
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
-
-        } else {
-            //If the array list of movies poster data is null, show the error message
-            showErrorMessage();
+            };
         }
-    }
 
-    @Override
-    public void onLoaderReset(Loader<Movie[]> loader) {
+        @Override
+        public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
 
-    }
+            ArrayList<String> results;
+
+
+            if (movies != null && movies.length != 0) {
+
+                results = getPosterPaths(movies);
+
+
+                String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
+                posterArray = results != null ? results.toArray(posterArray) : new String[0];
+
+                mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+
+                //Grid View setOnItemClickListener that leads to detail page
+                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    public void onItemClick(AdapterView<?> parent, View v,
+                                            int position, long id) {
+
+
+                        PacelableMethod(movies, position);
+
+
+                        Toast.makeText(MainActivity.this, "" + position,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else {
+                //If the array list of movies poster data is null, show the error message
+                showErrorMessage();
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Movie[]> loader) {
+
+        }
+
+    };
+
+
+
+
+
+    //Favorite Movies Loader. Loads favorite movies from DataBase.
+
+
+
 
     private void showErrorMessage() {
         /* First, hide the currently visible data */

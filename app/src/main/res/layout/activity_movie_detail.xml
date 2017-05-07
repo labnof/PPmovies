@@ -89,6 +89,16 @@
                         android:textColorLink="#8DE67F"
                         android:textSize="14sp"
                         android:typeface="sans" />
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/addFavorite_button"
+                        android:text="@string/add_favorite"
+                        android:background="#009688"
+                        android:textColor="#424242"
+                        android:padding="8dp"
+                        android:onClick="onClickaddMovieToFavorite"
+                    />
                 </LinearLayout>
             </LinearLayout>
 

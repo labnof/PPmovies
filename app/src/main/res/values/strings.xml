@@ -18,4 +18,10 @@
     <string name="detail_overview">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In a interdum metus, sagittis porta elit. Vivamus convallis, sem nec iaculis auctor, tellus urna accumsan mi, sed bibendum lorem nibh nec mauris. Sed mauris enim, egestas pharetra mi non, fermentum ultricies augue. Proin congue ipsum eget sodales semper. Sed eget egestas velit. Nam elementum rutrum blandit. Nunc convallis mollis justo, et elementum nisi sodales eu. Nam dictum ligula scelerisque gravida semper.</string>
     <string name="hAverageVote">/10</string>
 
+    <!--Add favourite button Strings-->
+    <string name="add_favorite">Add to favorite</string>
+    <string name="delete_favorite">Delete from favorite</string>
+
+
+
 </resources>

@@ -28,6 +28,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".views.MovieDetailActivity"></activity>
+        
+        <provider
+            android:authorities="com.example.babatundeanafi.ppmovies"
+            android:name="com.example.babatundeanafi.ppmovies.model.database.MovieContentProvider"
+            android:exported="false"></provider>
 
     </application>
 

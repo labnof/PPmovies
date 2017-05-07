@@ -1,18 +1,26 @@
 package com.example.babatundeanafi.ppmovies.views;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.babatundeanafi.ppmovies.MainActivity;
-import com.example.babatundeanafi.ppmovies.model.Movie;
 import com.example.babatundeanafi.ppmovies.R;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
+import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
+import com.example.babatundeanafi.ppmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.net.URL;
+
+import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.*;
+
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -42,7 +50,14 @@ public class MovieDetailActivity extends AppCompatActivity {
         mVoteAverage.setText(String.format("%s%s", Float.toString(mMovie.getVote_average()), getString(R.string.hAverageVote)));
         mOverview.setText(mMovie.getOverview());
         String mPosterPath = MakePosterPath(mMovie);
-        Picasso.with(context).load(mPosterPath).into(mImageView);
+
+
+        //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
+        Picasso.with(context)
+                .load(mPosterPath)
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher)
+                .into(mImageView);
     }
 
 
@@ -58,6 +73,33 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         }
         return null;
+
+    }
+
+    private void onClickaddMovieToFavorite(View view, FavouriteMovie movie){
+
+
+        ContentValues mValues = new ContentValues();
+
+        mValues.put(COLUMN_MOVIE_RELEASE_DATE, movie.getRelease_date());
+        mValues.put(COLUMN_MOVIE_ID, movie.getId());
+        mValues.put(COLUMN_MOVIE_ORIGINAL_TITLE, movie.getOriginal_title());
+        mValues.put(COLUMN_MOVIE_VOTE_AVARAGE, movie.getVote_average());
+        mValues.put(COLUMN_MOVIE_OVERVIEW, movie.getOverview());
+        mValues.put(COLUMN_MOVIE_POSTER_PATH, movie.getPoster_path());
+
+
+
+        // Insert the content values via a ContentResolver
+
+        Uri uri = getContentResolver().insert(CONTENT_URI, mValues);
+
+        // COMPLETED (8) Display the URI that's returned with a Toast
+        // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+        if(uri != null) {
+            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+        }
+
 
     }
 }

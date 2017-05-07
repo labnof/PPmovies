@@ -37,6 +37,8 @@ public class MoviesPostersAdapter extends ArrayAdapter {
         Picasso
                 .with(context)
                 .load(imageUrls[position])
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher)
                 .fit() // will explain later
                 .into((ImageView) convertView);
 
