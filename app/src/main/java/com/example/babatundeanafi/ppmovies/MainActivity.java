@@ -3,6 +3,7 @@ package com.example.babatundeanafi.ppmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,11 +23,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
+import com.example.babatundeanafi.ppmovies.model.Movie;
+import com.example.babatundeanafi.ppmovies.model.RequestResult;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.MoviesPostersAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
-import com.example.babatundeanafi.ppmovies.model.Movie;
-import com.example.babatundeanafi.ppmovies.model.RequestResult;
+import com.example.babatundeanafi.ppmovies.model.database.MovieDbContract;
+import com.example.babatundeanafi.ppmovies.model.database.MovieDbHelper;
 import com.example.babatundeanafi.ppmovies.views.MovieDetailActivity;
 
 import java.io.IOException;
@@ -40,11 +45,9 @@ import static java.lang.Boolean.TRUE;
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
 
 
-    //Loaders
-    private static final int NETWORK_MOVIE_LOADER_ID = 1;
-    private static final int DB_MOVIE_LOADER_ID = 2;
-
-
+    // Constants for logging and referring to a unique loader
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int FAVOURITE_MOVIE_LOADER_ID = 1;
 
 
 
@@ -146,13 +149,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             showErrorMessage();
         }
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+       // mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
-    @Override
-    protected void onResume(){
-        super.onResume();
-        mLoadingIndicator.setVisibility(View.VISIBLE);
 
+    @Override
+    public void onStart() {
+        super.onStart();  // Always call the superclass method first
+
+       // mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
 
@@ -194,55 +204,168 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    // get sort movies from DB
+    private void getSortMovies() {
+        //Loader
 
-    // MovieDB lader  loads movies from the network
+        mGridView = (GridView) findViewById(R.id.usage_example_gridview);
 
-    LoaderManager.LoaderCallbacks<Movie[]>
 
-    private LoaderManager.LoaderCallbacks<Movie[]> MovieLoaderListener
-            = new  LoaderManager.LoaderCallbacks<Movie[]>() {
+        LoaderManager mLoaderManager = getSupportLoaderManager();
+        Loader<Cursor> mLoader = mLoaderManager.getLoader(FAVOURITE_MOVIE_LOADER_ID );
+
+
+        if (mLoader == null) {
+            mLoaderManager.initLoader(FAVOURITE_MOVIE_LOADER_ID, null, dataResultLoaderListener)
+                    .forceLoad();
+
+        } else {
+            mLoaderManager.restartLoader(FAVOURITE_MOVIE_LOADER_ID, null, dataResultLoaderListener)
+                    .forceLoad();
+        }
+    }
+
+    @Override
+    public Loader<Movie[]> onCreateLoader(int id, final Bundle args) {
+        // LoaderManager.LoaderCallbacks<Movie> Starts
+
+        return new AsyncTaskLoader<Movie[]>(this) {
+            @Override
+            public Movie[] loadInBackground() {
+                String MoviesURLString = args.getString(MOVIES_LOADER_EXTRA);
+                if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
+                    return null;
+                } else {
+
+
+                    String JsonSortResult = getJsonSortResult(MoviesURLString);
+                    return getMoviesLinks(JsonSortResult);
+
+                }
+
+
+            }
+
+            @Override
+            public void onStartLoading() {
+                super.onStartLoading();
+                if (args == null) {
+                    return;
+                }
+                mLoadingIndicator.setVisibility(View.VISIBLE);
+
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
+
+        ArrayList<String> results;
+
+
+        if (movies != null && movies.length != 0) {
+
+            results = getPosterPaths(movies);
+
+
+            String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
+            posterArray = results != null ? results.toArray(posterArray) : new String[0];
+
+            mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+
+            //Grid View setOnItemClickListener that leads to detail page
+            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v,
+                                        int position, long id) {
+
+
+                    PacelableMethod(movies, position);
+
+
+                    Toast.makeText(MainActivity.this, "" + position,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        } else {
+            //If the array list of movies poster data is null, show the error message
+            showErrorMessage();
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Movie[]> loader) {
+
+    }
+
+
+
+    //favourie movie loader
+    private LoaderManager.LoaderCallbacks<Cursor> dataResultLoaderListener
+            = new LoaderManager.LoaderCallbacks<Cursor>() {
+
         @Override
-        public Loader<Movie[]> onCreateLoader(int id, final Bundle args) {
-            // LoaderManager.LoaderCallbacks<Movie> Starts
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return new AsyncTaskLoader<Cursor>(mContext) {
 
-            return new AsyncTaskLoader<Movie[]>(this) {
+
+                // Initialize a Cursor, this will hold all the task data
+                Cursor mMovieData = null;
+
+                // onStartLoading() is called when a loader first starts loading data
                 @Override
-                public Movie[] loadInBackground() {
-                    String MoviesURLString = args.getString(MOVIES_LOADER_EXTRA);
-                    if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
-                        return null;
+                protected void onStartLoading() {
+                    if (mMovieData != null) {
+                        // Delivers any previously loaded data immediately
+                        deliverResult(mMovieData);
                     } else {
-
-
-                        String JsonSortResult = getJsonSortResult(MoviesURLString);
-                        return getMoviesLinks(JsonSortResult);
-
+                        // Force a new load
+                        forceLoad();
                     }
-
-
                 }
 
                 @Override
-                public void onStartLoading() {
-                    super.onStartLoading();
-                    if (args == null) {
-                        return;
-                    }
-                    mLoadingIndicator.setVisibility(View.VISIBLE);
+                public Cursor loadInBackground() {
+                    // Will implement to load data
 
+                    // COMPLETED (5) Query and load all task data in the background; sort by priority
+                    // [Hint] use a try/catch block to catch any errors in loading data
+
+                    try {
+                        return getContentResolver().query(MovieDbContract.MovieEntry.CONTENT_URI,
+                                null,
+                                null,
+                                null,
+                                MovieDbContract.MovieEntry.COLUMN_MOVIE_ID);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to asynchronously load data.");
+                        e.printStackTrace();
+                        return null;
+                    }
                 }
+
+                // deliverResult sends the result of the load, a Cursor, to the registered listener
+                public void deliverResult(Cursor data) {
+                    mMovieData = data;
+                    super.deliverResult(data);
+                }
+
             };
         }
-
         @Override
-        public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-            ArrayList<String> results;
+            ArrayList<FavouriteMovie> results;
 
 
-            if (movies != null && movies.length != 0) {
+            if (data != null && data.getCount() != 0) {
 
-                results = getPosterPaths(movies);
+                results =  MovieDbHelper.getListOfFavouriteMovies1(data);
+
 
 
                 String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
@@ -258,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                                             int position, long id) {
 
 
-                        PacelableMethod(movies, position);
+                        //PacelableMethod(movies, position);
 
 
                         Toast.makeText(MainActivity.this, "" + position,
@@ -270,21 +393,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 //If the array list of movies poster data is null, show the error message
                 showErrorMessage();
             }
+
+
+
         }
 
         @Override
-        public void onLoaderReset(Loader<Movie[]> loader) {
+        public void onLoaderReset(Loader<Cursor> loader) {
 
         }
-
     };
-
-
-
-
-
-    //Favorite Movies Loader. Loads favorite movies from DataBase.
-
 
 
 
@@ -317,6 +435,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getSortMovies(SORT_BY_VOTE_AVE_URL);//gets the top rated  movies
                 return true;
             case R.id.favorite_option:
+                getSortMovies();
                 return true;
 
             default:

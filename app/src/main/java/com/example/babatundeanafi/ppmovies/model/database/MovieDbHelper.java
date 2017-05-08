@@ -131,6 +131,32 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         return mMovietList;
     }
 
+    // Getting All Movies
+    public static ArrayList<FavouriteMovie> getListOfFavouriteMovies1( Cursor cursor) {
+        ArrayList<FavouriteMovie> mMovietList = new ArrayList<FavouriteMovie>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                FavouriteMovie mMovie = new FavouriteMovie();
+
+                mMovie.setPoster_path(cursor.getString(0));
+                mMovie.setOverview(cursor.getString(1));
+                mMovie.setRelease_date(cursor.getString(2));
+                mMovie.setId(Integer.parseInt(cursor.getString(3)));
+                mMovie.setOriginal_title(cursor.getString(4));
+                mMovie.setVote_average(Float.parseFloat(cursor.getString(5)));
+
+                // Adding contact to list
+                mMovietList.add(mMovie);
+            } while (cursor.moveToNext());}
+
+        // return contact list
+        return mMovietList;
+    }
+
+
+
     // Adding new Movie
     public void addMovie(Movie movie) {
         SQLiteDatabase mDb = this.getWritableDatabase();

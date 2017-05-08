@@ -39,7 +39,7 @@ public class MoviesPostersAdapter extends ArrayAdapter {
                 .load(imageUrls[position])
                 .placeholder(R.mipmap.ic_launcher)
                 .error(R.mipmap.ic_launcher)
-                .fit() // will explain later
+                .fit()
                 .into((ImageView) convertView);
 
         return convertView;

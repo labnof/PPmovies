@@ -1,7 +1,5 @@
 package com.example.babatundeanafi.ppmovies.control;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 
@@ -16,24 +14,8 @@ import java.util.Scanner;
 public final class NetworkUtils {
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
-
-
-    //API_KEY
-    //private Context context;
-    //private  String API_KEY = getResources().getString(R.string.themoviedbApi_key);
-
-    //Sort URL parameters
-    private static final String SORT_BASE_URL = "https://api.themoviedb.org/3/discover/movie?page=1&include_video=false&include_adult=false";
-    private static final String SORT_BY = "sort_by";
-
-
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
-
-
-    //quary parameter
-    final static String QUERY_PARAM = "q";
-    final static String API_KEY_PARAM = "api_key";
-    final static String APESANT_PARAM = "&";
+    private final static String API_KEY_PARAM = "api_key";
 
 
     /**
@@ -46,7 +28,7 @@ public final class NetworkUtils {
     public static URL buildImageUrl(String image_path) {
 
 
-  String img_url = IMAGE_BASE_URL + image_path;
+        String img_url = IMAGE_BASE_URL + image_path;
 
         URL url = null;
         try {
@@ -61,7 +43,7 @@ public final class NetworkUtils {
     }
 
 
-    public static URL buildSortUrl(String SortURL, String apIKey ) {
+    public static URL buildSortUrl(String SortURL, String apIKey) {
         //Method to build the sorth URL
 
 
@@ -82,7 +64,7 @@ public final class NetworkUtils {
         return url;
     }
 
-    public static URL ValidateUrl( String Sort_URL) {
+    public static URL ValidateUrl(String Sort_URL) {
 
         Uri builtUri = Uri.parse(Sort_URL);
 
@@ -97,11 +79,6 @@ public final class NetworkUtils {
 
         return url;
     }
-
-
-
-
-
 
 
     /**
@@ -131,19 +108,5 @@ public final class NetworkUtils {
 
     }
 
-    public static  Bitmap getResponseFromImgHttpUrl(URL url ) throws IOException {
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
-
-        try {
-            Bitmap bmp = BitmapFactory.decodeStream(urlConnection.getInputStream());
-            return bmp;
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        } finally {
-            urlConnection.disconnect();
-        }
-        return null;
-    }
 }

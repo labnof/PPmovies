@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.example.babatundeanafi.ppmovies.MainActivity;
 import com.example.babatundeanafi.ppmovies.R;
+import com.example.babatundeanafi.ppmovies.control.FavoriteMovieAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
@@ -76,7 +77,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     }
 
-    private void onClickaddMovieToFavorite(View view, FavouriteMovie movie){
+
+    private void addMovieToFavorite(FavouriteMovie movie){
 
 
         ContentValues mValues = new ContentValues();
@@ -101,5 +103,18 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    public void onClickaddMovieToFavorite(View view) {
+
+        //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+
+
+        FavouriteMovie fMovie = new FavouriteMovie(mMovie.getPoster_path(),mMovie.getOverview(),
+                mMovie.getRelease_date(), mMovie.getId(), mMovie.getOriginal_title(),
+                mMovie.getVote_average());
+
+        addMovieToFavorite(fMovie);
     }
 }

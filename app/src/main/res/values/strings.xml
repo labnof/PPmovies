@@ -14,7 +14,7 @@
     <string name="poster_image">Poster Image...</string>
     <string name="movie_time">120 mins</string>
     <string name="user_rating_string">8.1/10</string>
-    <string name="year_details_string">2015</string>
+    <string name="year_details_string">2015-03-16</string>
     <string name="detail_overview">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In a interdum metus, sagittis porta elit. Vivamus convallis, sem nec iaculis auctor, tellus urna accumsan mi, sed bibendum lorem nibh nec mauris. Sed mauris enim, egestas pharetra mi non, fermentum ultricies augue. Proin congue ipsum eget sodales semper. Sed eget egestas velit. Nam elementum rutrum blandit. Nunc convallis mollis justo, et elementum nisi sodales eu. Nam dictum ligula scelerisque gravida semper.</string>
     <string name="hAverageVote">/10</string>
 
