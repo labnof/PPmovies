@@ -23,7 +23,7 @@ import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract
 public class MovieDbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 5;
 
 
 
@@ -33,14 +33,18 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_MOVIES + "( "
-            + " text not null," +
-            COLUMN_MOVIE_OVERVIEW + " text not null," +
-            COLUMN_MOVIE_RELEASE_DATE + " text not null," +
-            COLUMN_MOVIE_ID + " text not null,  " +
-            COLUMN_MOVIE_POSTER_PATH + " text not null,  " +
-            COLUMN_MOVIE_ORIGINAL_TITLE + " text not null," +
-            COLUMN_MOVIE_VOTE_AVARAGE + " text not null);";
+            + TABLE_MOVIES + "( "+
+            _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            COLUMN_MOVIE_OVERVIEW + " text," +
+            COLUMN_MOVIE_RELEASE_DATE + " text ," +
+            COLUMN_MOVIE_ID + " INTEGER,  " +
+            COLUMN_MOVIE_POSTER_PATH + " text,  " +
+            COLUMN_MOVIE_ORIGINAL_TITLE + " text ," +
+            COLUMN_MOVIE_VOTE_AVARAGE + " INTEGER );";
+
+
+
+
 
 
     private static final String DATABASE_INSERT = "insert into"
@@ -136,12 +140,12 @@ public class MovieDbHelper extends SQLiteOpenHelper {
             do {
                 FavouriteMovie mMovie = new FavouriteMovie();
 
-                mMovie.setPoster_path(cursor.getString(0));
-                mMovie.setOverview(cursor.getString(1));
-                mMovie.setRelease_date(cursor.getString(2));
-                mMovie.setId(Integer.parseInt(cursor.getString(3)));
-                mMovie.setOriginal_title(cursor.getString(4));
-                mMovie.setVote_average(Float.parseFloat(cursor.getString(5)));
+                mMovie.setPoster_path(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_POSTER_PATH )));
+                mMovie.setOverview(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_OVERVIEW )));
+                mMovie.setRelease_date(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_RELEASE_DATE )));
+                mMovie.setId(Integer.parseInt(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_ID))));
+                mMovie.setOriginal_title(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_ORIGINAL_TITLE)));
+                mMovie.setVote_average(Float.parseFloat(cursor.getString(cursor.getColumnIndex(COLUMN_MOVIE_VOTE_AVARAGE))));
 
                 // Adding contact to list
                 mMovietList.add(mMovie);

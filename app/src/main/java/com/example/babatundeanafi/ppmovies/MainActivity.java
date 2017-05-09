@@ -23,6 +23,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.babatundeanafi.ppmovies.control.FavoriteMovieAdapter;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
 import com.example.babatundeanafi.ppmovies.model.RequestResult;
@@ -47,12 +48,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Constants for logging and referring to a unique loader
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int MOVIE_LOADER_ID = 1;
     private static final int FAVOURITE_MOVIE_LOADER_ID = 2;
 
 
 
     public static final String MOVIE_DETAIL = "com.example.PPmovies.Detail";
+    public static final String FAVOURITE_MOVIE_DETAIL = "com.example.PPmovies.Favourite.Detail";
     public static final String MOVIES_LOADER_EXTRA = "com.example.PPmovies.MoviesLoader";
     private static final int MOVIES_DB_LOADER = 29;//Loader indentify
     private static final String SORT_BY_PP_URL = "http://api.themoviedb.org/3/movie/popular?";
@@ -118,6 +119,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return null;
 
     }
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -357,20 +361,51 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             };
         }
+
+
+
+
+
+        private ArrayList<String> getPosterPaths(ArrayList<FavouriteMovie> m) {
+
+            ArrayList<String> PosterPaths = new ArrayList<>();
+
+
+            if (m.size() != 0) {
+
+
+                for (FavouriteMovie movies : m) {
+
+                    URL url = NetworkUtils.buildImageUrl(movies.getPoster_path());
+                    String sd = url.toString();
+                    PosterPaths.add(sd);
+                }
+
+                return PosterPaths;
+            }
+            return null;
+
+        }
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-            ArrayList<FavouriteMovie> results;
+            final ArrayList<FavouriteMovie> results;
+            final ArrayList<String> poster_paths;
+
+
 
 
             if (data != null && data.getCount() != 0) {
 
+
+
                 results =  MovieDbHelper.getListOfFavouriteMovies1(data);
+                poster_paths = getPosterPaths(results);
 
 
 
-                String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
-                posterArray = results != null ? results.toArray(posterArray) : new String[0];
+                String[] posterArray = new String[results != null ? results.size() : 0];// initialize string array to size of result
+                posterArray = poster_paths != null ? poster_paths.toArray(posterArray) : new String[0];
 
                 mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
                 mLoadingIndicator.setVisibility(View.INVISIBLE);
@@ -382,7 +417,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                                             int position, long id) {
 
 
-                        //PacelableMethod(movies, position);
+                        FavouriteMovie[] sResults = new FavouriteMovie[results != null ? results.size() : 0];// initialize string array to size of result
+                        sResults = results != null ? results.toArray(sResults) : new FavouriteMovie[0];
+                        PacelableMethod(sResults, position);
+
 
 
                         Toast.makeText(MainActivity.this, "" + position,
@@ -458,5 +496,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         startActivity(mIntent);
     }
 
+
+    public void PacelableMethod(FavouriteMovie[] movies, int position) {
+
+
+        FavouriteMovie mMovie = movies[position];
+        Intent mIntent = new Intent(this, MovieDetailActivity.class);
+
+        Bundle mBundle = new Bundle();
+
+        mBundle.putParcelable(FAVOURITE_MOVIE_DETAIL, mMovie);
+        mIntent.putExtras(mBundle);
+
+        startActivity(mIntent);
+    }
 
 }

@@ -46,7 +46,7 @@
 
                 <ImageView
                     android:id="@+id/imageview_poster"
-                    android:layout_width="200dp"
+                    android:layout_width="171dp"
                     android:layout_height="250dp"
                     android:contentDescription="@string/poster_image"
                     android:src="@mipmap/ic_launcher" />
@@ -55,7 +55,8 @@
                     android:layout_width="250dp"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp">
+                    android:padding="8dp"
+                    android:weightSum="1">
 
                     <TextView
                         android:id="@+id/textview_movie_year"
@@ -98,7 +99,7 @@
                         android:textColor="#424242"
                         android:padding="8dp"
                         android:onClick="onClickaddMovieToFavorite"
-                    />
+                        android:layout_weight="2.13" />
                 </LinearLayout>
             </LinearLayout>
 

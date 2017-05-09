@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +31,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
 
     Context context;
+    Button button ;
 
 
     @Override
@@ -43,27 +45,55 @@ public class MovieDetailActivity extends AppCompatActivity {
         TextView mVoteAverage = (TextView) findViewById(R.id.textview_ratings);
         TextView mOverview = (TextView) findViewById(R.id.textview_overview);
         ImageView mImageView = (ImageView) findViewById(R.id.imageview_poster);
+        button = (Button) findViewById(R.id.addFavorite_button);
 
 
-        //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
-        Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
-        context = getApplication();
+        if (getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL )!= null) {
+            //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+            Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+            context = getApplication();
 
-        mTittle.setText(mMovie.getTitle());
-        mReleaseDate.setText(mMovie.getRelease_date());
-        mVoteAverage.setText(String.format("%s%s", Float.toString(mMovie.getVote_average()), getString(R.string.hAverageVote)));
-        mOverview.setText(mMovie.getOverview());
-        String mPosterPath = MakePosterPath(mMovie);
-
-
-        //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
-        Picasso.with(context)
-                .load(mPosterPath)
-                .placeholder(R.mipmap.ic_launcher)
-                .error(R.mipmap.ic_launcher)
-                .into(mImageView);
+            mTittle.setText(mMovie.getTitle());
+            mReleaseDate.setText(mMovie.getRelease_date());
+            mVoteAverage.setText(String.format("%s%s", Float.toString(mMovie.getVote_average()), getString(R.string.hAverageVote)));
+            mOverview.setText(mMovie.getOverview());
+            String mPosterPath = MakePosterPath(mMovie);
 
 
+            //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
+            Picasso.with(context)
+                    .load(mPosterPath)
+                    .placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher)
+                    .into(mImageView);
+
+        }
+
+        else{
+
+            //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+            FavouriteMovie mMovie = getIntent().getParcelableExtra(MainActivity.FAVOURITE_MOVIE_DETAIL);
+            context = getApplication();
+
+            mTittle.setText(mMovie.getOriginal_title());
+            mReleaseDate.setText(mMovie.getRelease_date());
+            mVoteAverage.setText(String.format("%s%s", Float.toString(mMovie.getVote_average()), getString(R.string.hAverageVote)));
+            mOverview.setText(mMovie.getOverview());
+            String mPosterPath = MakePosterPath(mMovie);
+            //grab the layout, then set the text of the Button called R.id.Counter:
+            button.setText(R.string.delete_favorite);
+
+
+
+
+            //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
+            Picasso.with(context)
+                    .load(mPosterPath)
+                    .placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher)
+                    .into(mImageView);
+
+        }
 
     }
     //return Movie's poster path
@@ -80,6 +110,21 @@ public class MovieDetailActivity extends AppCompatActivity {
         return null;
 
     }
+
+    private String MakePosterPath(FavouriteMovie m) {
+
+
+        if (m != null) {
+
+
+            URL url = NetworkUtils.buildImageUrl(m.getPoster_path());
+            return url.toString();
+
+        }
+        return null;
+
+    }
+
 
 
     public void addMovieToFavorite(FavouriteMovie movie){
@@ -111,15 +156,34 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     public void onClickaddMovieToFavorite(View view) {
 
-        //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
-        Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        Button b = (Button)view;
+        String bText = b.getText().toString();
+        String addText =  getString(R.string.add_favorite);
+        String delText = getString(R.string.delete_favorite);
+
+        if(bText.equals((addText))) {
+
+            //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+            Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
 
 
-        FavouriteMovie fMovie = new FavouriteMovie(mMovie.getPoster_path(),mMovie.getOverview(),
-                mMovie.getRelease_date(), mMovie.getId(), mMovie.getOriginal_title(),
-                mMovie.getVote_average());
+            FavouriteMovie fMovie = new FavouriteMovie(mMovie.getPoster_path(), mMovie.getOverview(),
+                    mMovie.getRelease_date(), mMovie.getId(), mMovie.getOriginal_title(),
+                    mMovie.getVote_average());
 
-        addMovieToFavorite(fMovie);
+            addMovieToFavorite(fMovie);
+
+          b.setText(R.string.delete_favorite);
+
+        }
+           // delete from database
+        else if (bText.equals((delText))){
+
+        }
+
+        else{
+
+        }
 
     }
 

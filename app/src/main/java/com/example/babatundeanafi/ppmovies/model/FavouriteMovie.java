@@ -1,10 +1,13 @@
 package com.example.babatundeanafi.ppmovies.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by null on 7.5.2017.
  */
 
-public class FavouriteMovie {
+public class FavouriteMovie implements Parcelable {
     private String poster_path;
     private String overview;
     private String release_date;
@@ -71,4 +74,40 @@ public class FavouriteMovie {
     public void setVote_average(float vote_average) {
         this.vote_average = vote_average;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.poster_path);
+        dest.writeString(this.overview);
+        dest.writeString(this.release_date);
+        dest.writeInt(this.id);
+        dest.writeString(this.original_title);
+        dest.writeFloat(this.vote_average);
+    }
+
+    protected FavouriteMovie(Parcel in) {
+        this.poster_path = in.readString();
+        this.overview = in.readString();
+        this.release_date = in.readString();
+        this.id = in.readInt();
+        this.original_title = in.readString();
+        this.vote_average = in.readFloat();
+    }
+
+    public static final Creator<FavouriteMovie> CREATOR = new Creator<FavouriteMovie>() {
+        @Override
+        public FavouriteMovie createFromParcel(Parcel source) {
+            return new FavouriteMovie(source);
+        }
+
+        @Override
+        public FavouriteMovie[] newArray(int size) {
+            return new FavouriteMovie[size];
+        }
+    };
 }

@@ -11,14 +11,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.TABLE_MOVIES;
-
-/**
- * Created by babatundeanafi on 06/05/2017.
- */
 
 public class MovieContentProvider extends ContentProvider {
-    private static final String LOG_TAG = MovieContentProvider.class.getSimpleName();
 
     // It's convention to use 100, 200, 300, etc for directories,
     // and related ints (101, 102, ..) for items in that directory.
@@ -57,10 +51,10 @@ public class MovieContentProvider extends ContentProvider {
         return true;
     }
 
-    @Nullable
+
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
-                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    public Cursor query( Uri uri, String[] projection,  String selection,
+                       String[] selectionArgs,  String sortOrder) {
 
         final SQLiteDatabase db = mMovieDbHelper.getReadableDatabase();// get access to DB
         int match = sUriMatcher.match(uri);
@@ -107,7 +101,7 @@ public class MovieContentProvider extends ContentProvider {
         return null;
     }
 
-    @Nullable
+
     @Override
     public Uri insert( Uri uri,  ContentValues values) {
         //Get access to the task database (to write new data to)
@@ -121,7 +115,8 @@ public class MovieContentProvider extends ContentProvider {
             case MOVIES:
                 // Insert new values into the database
                 // Inserting values into tasks table
-                long id = db.insert(TABLE_MOVIES, null, values);
+                long id = db.insertWithOnConflict( MovieDbContract.MovieEntry.TABLE_MOVIES, null
+                        ,values,  SQLiteDatabase.CONFLICT_IGNORE);
                 if (id > 0) {
                     returnUri = MovieDbContract.MovieEntry.buildMoviesUri(id);
                 } else {
@@ -143,6 +138,7 @@ public class MovieContentProvider extends ContentProvider {
         return returnUri;
     }
 
+    @Nullable
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[]
             selectionArgs) {
