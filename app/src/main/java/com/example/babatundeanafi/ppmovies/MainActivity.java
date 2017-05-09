@@ -47,7 +47,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Constants for logging and referring to a unique loader
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int FAVOURITE_MOVIE_LOADER_ID = 1;
+    private static final int MOVIE_LOADER_ID = 1;
+    private static final int FAVOURITE_MOVIE_LOADER_ID = 2;
 
 
 

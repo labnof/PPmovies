@@ -1,5 +1,7 @@
 package com.example.babatundeanafi.ppmovies.model.database;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -40,8 +42,34 @@ public class MovieDbContract {
         public static final String COLUMN_MOVIE_ID = "id";
         public static final String COLUMN_MOVIE_ORIGINAL_TITLE = "original_title";
         public static final String COLUMN_MOVIE_VOTE_AVARAGE = "vote_average";
-        public static final String COLUMN_ID = "_id";
         public static final String COLUMN_MOVIE_POSTER_PATH = "poster_path";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // create cursor of base type directory for multiple entries
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + AUTHORITY + "/" + TABLE_MOVIES;
+        // create cursor of base type item for single entry
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE +"/" + AUTHORITY + "/" + TABLE_MOVIES;
+
+        // for building URIs on insertion
+        public static Uri buildMoviesUri(long id){
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
 }

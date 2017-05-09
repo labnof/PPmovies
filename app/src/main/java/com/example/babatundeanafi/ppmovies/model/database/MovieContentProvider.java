@@ -18,6 +18,7 @@ import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract
  */
 
 public class MovieContentProvider extends ContentProvider {
+    private static final String LOG_TAG = MovieContentProvider.class.getSimpleName();
 
     // It's convention to use 100, 200, 300, etc for directories,
     // and related ints (101, 102, ..) for items in that directory.
@@ -66,17 +67,38 @@ public class MovieContentProvider extends ContentProvider {
         Cursor retCursor;
 
         switch (match){
+
+            // All Movies selected
             case MOVIES: //the movies directory
-                retCursor = db.query(TABLE_MOVIES,projection,selection,
-                        selectionArgs,null,null, sortOrder);
-                break;
+               retCursor = db.query(
+                        MovieDbContract.MovieEntry.TABLE_MOVIES,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                retCursor.setNotificationUri(getContext().getContentResolver(),uri);
+                return retCursor;
+
+            // Individual flavor based on Id selected
+            case MOVIE_WITH_ID :{
+                retCursor = db.query(
+                        MovieDbContract.MovieEntry.TABLE_MOVIES,
+                        projection,
+                        MovieDbContract.MovieEntry._ID + " = ?",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                retCursor.setNotificationUri(getContext().getContentResolver(),uri);
+                return retCursor;
+            }
+
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
 
-        retCursor.setNotificationUri(getContext().getContentResolver(),uri);
-
-        return retCursor;
     }
 
     @Nullable
@@ -87,7 +109,7 @@ public class MovieContentProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+    public Uri insert( Uri uri,  ContentValues values) {
         //Get access to the task database (to write new data to)
         final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
 
@@ -101,7 +123,7 @@ public class MovieContentProvider extends ContentProvider {
                 // Inserting values into tasks table
                 long id = db.insert(TABLE_MOVIES, null, values);
                 if (id > 0) {
-                    returnUri = ContentUris.withAppendedId(MovieDbContract.MovieEntry.CONTENT_URI, id);
+                    returnUri = MovieDbContract.MovieEntry.buildMoviesUri(id);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
 
@@ -124,7 +146,35 @@ public class MovieContentProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[]
             selectionArgs) {
-        return 0;
+        //Get access to the task database (to write new data to)
+        final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
+       //  Write URI matching code to identify the match for the tasks directory
+        int match = sUriMatcher.match(uri);
+        int numDeleted;
+
+        switch(match){
+            case MOVIES:
+                numDeleted = db.delete(
+                        MovieDbContract.MovieEntry.TABLE_MOVIES, selection, selectionArgs);
+                // reset _ID
+                db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                        MovieDbContract.MovieEntry.TABLE_MOVIES + "'");
+                break;
+            case MOVIE_WITH_ID:
+                numDeleted = db.delete(MovieDbContract.MovieEntry.TABLE_MOVIES,
+                        MovieDbContract.MovieEntry._ID + " = ?",
+                        new String[]{String.valueOf(ContentUris.parseId(uri))});
+                // reset _ID
+                db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                        MovieDbContract.MovieEntry.TABLE_MOVIES + "'");
+
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        return numDeleted;
+
     }
 
     @Override

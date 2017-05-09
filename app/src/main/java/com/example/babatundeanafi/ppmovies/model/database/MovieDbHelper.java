@@ -7,20 +7,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.babatundeanafi.ppmovies.control.FavoriteMovieAdapter;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_ID;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_ID;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_ORIGINAL_TITLE;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_OVERVIEW;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_POSTER_PATH;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.COLUMN_MOVIE_VOTE_AVARAGE;
-import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.TABLE_MOVIES;
+import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.*;
 
 /**
  * Created by babatundeanafi on 03/05/2017.
@@ -29,7 +23,7 @@ import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract
 public class MovieDbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
 
 
 
@@ -39,21 +33,23 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_MOVIES + "( " + COLUMN_ID
-            + " integer primary key autoincrement, " +
+            + TABLE_MOVIES + "( "
+            + " text not null," +
             COLUMN_MOVIE_OVERVIEW + " text not null," +
             COLUMN_MOVIE_RELEASE_DATE + " text not null," +
             COLUMN_MOVIE_ID + " text not null,  " +
+            COLUMN_MOVIE_POSTER_PATH + " text not null,  " +
             COLUMN_MOVIE_ORIGINAL_TITLE + " text not null," +
             COLUMN_MOVIE_VOTE_AVARAGE + " text not null);";
 
 
     private static final String DATABASE_INSERT = "insert into"
-            + TABLE_MOVIES + "( " + COLUMN_ID
+            + TABLE_MOVIES + "( "
             + " , " +
             COLUMN_MOVIE_OVERVIEW + " ,  " +
             COLUMN_MOVIE_RELEASE_DATE + " ,  " +
             COLUMN_MOVIE_ID + " ,  " +
+            COLUMN_MOVIE_POSTER_PATH + " text not null,  " +
             COLUMN_MOVIE_ORIGINAL_TITLE + " ,  " +
             COLUMN_MOVIE_VOTE_AVARAGE
             + ");";
@@ -158,7 +154,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 
     // Adding new Movie
-    public void addMovie(Movie movie) {
+    public void addMovie(FavouriteMovie movie) {
         SQLiteDatabase mDb = this.getWritableDatabase();
 
 
@@ -185,7 +181,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
          Cursor cursor = db.query(TABLE_MOVIES, new String[]{COLUMN_MOVIE_POSTER_PATH,
                          COLUMN_MOVIE_OVERVIEW, COLUMN_MOVIE_RELEASE_DATE, COLUMN_MOVIE_ID,
-                         COLUMN_MOVIE_ORIGINAL_TITLE, COLUMN_MOVIE_VOTE_AVARAGE}, COLUMN_MOVIE_ID + "=?",
+                         COLUMN_MOVIE_ORIGINAL_TITLE, COLUMN_MOVIE_VOTE_AVARAGE}, _ID + "=?",
                  new String[]{String.valueOf(id)}, null, null, null, null);
          if (cursor != null)
              cursor.moveToFirst();
@@ -207,7 +203,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
              Cursor cursor = db.query(TABLE_MOVIES, new String[]{COLUMN_MOVIE_POSTER_PATH,
                              COLUMN_MOVIE_OVERVIEW, COLUMN_MOVIE_RELEASE_DATE, COLUMN_MOVIE_ID,
-                             COLUMN_MOVIE_ORIGINAL_TITLE, COLUMN_MOVIE_VOTE_AVARAGE},  COLUMN_ID  + "=?",
+                             COLUMN_MOVIE_ORIGINAL_TITLE, COLUMN_MOVIE_VOTE_AVARAGE},   _ID  + "=?",
                      new String[]{String.valueOf(id)}, null, null, null, null);
              if (cursor != null)
                  cursor.moveToFirst();
@@ -223,7 +219,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 // Deleting single contact
     public void deleteMosque(FavouriteMovie movie) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_MOVIES, COLUMN_MOVIE_ID + " = ?",
+        db.delete(TABLE_MOVIES, _ID + " = ?",
                 new String[] { String.valueOf(movie.getId()) });
         db.close();
     }
@@ -231,7 +227,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     private boolean removeMovieFromList(long id) {
 
         SQLiteDatabase mDb = this.getWritableDatabase();
-        return mDb.delete(TABLE_MOVIES, COLUMN_ID + "=" + id, null) > 0;
+        return mDb.delete(TABLE_MOVIES,  _ID + "=" + id, null) > 0;
     }
 
 
@@ -251,7 +247,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         mValues.put(COLUMN_MOVIE_POSTER_PATH, movie.getPoster_path());
 
         // updating row
-        return db.update(TABLE_MOVIES,  mValues, COLUMN_MOVIE_ID+ " = ?",
+        return db.update(TABLE_MOVIES,  mValues, _ID+ " = ?",
                 new String[] { String.valueOf(movie.getId()) });
     }
 

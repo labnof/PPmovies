@@ -2,17 +2,20 @@ package com.example.babatundeanafi.ppmovies.views;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.babatundeanafi.ppmovies.MainActivity;
 import com.example.babatundeanafi.ppmovies.R;
-import com.example.babatundeanafi.ppmovies.control.FavoriteMovieAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
@@ -59,9 +62,10 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .placeholder(R.mipmap.ic_launcher)
                 .error(R.mipmap.ic_launcher)
                 .into(mImageView);
+
+
+
     }
-
-
     //return Movie's poster path
     private String MakePosterPath(Movie m) {
 
@@ -78,7 +82,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
 
-    private void addMovieToFavorite(FavouriteMovie movie){
+    public void addMovieToFavorite(FavouriteMovie movie){
 
 
         ContentValues mValues = new ContentValues();
@@ -116,5 +120,7 @@ public class MovieDetailActivity extends AppCompatActivity {
                 mMovie.getVote_average());
 
         addMovieToFavorite(fMovie);
+
     }
+
 }
