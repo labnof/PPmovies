@@ -17,6 +17,14 @@ public final class NetworkUtils {
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
     private final static String API_KEY_PARAM = "api_key";
 
+    //REVIEW AND VIDEO
+    private static final String REVIEW_VIDEO_BASE_URL = "https://api.themoviedb.org/3/movie/";
+    public static String movieIdArg;
+    public static final String VIDEO_URL = REVIEW_VIDEO_BASE_URL+ "/movie/"+ movieIdArg +"/videos";
+    public static final String REVIEW_URL = REVIEW_VIDEO_BASE_URL + "/movie/" + movieIdArg + "/reviews" ;
+
+
+
 
     /**
      * Builds the URL used to talk to the weather server using a location. This location is based
@@ -63,6 +71,64 @@ public final class NetworkUtils {
 
         return url;
     }
+
+
+
+
+    public static URL buildVideoUrl(String mId, String apIKey) {
+        //Method to build the video URL
+
+        movieIdArg = mId;
+        String bUrl = VIDEO_URL;
+
+
+
+        Uri builtUri = Uri.parse(bUrl).buildUpon()
+                .appendQueryParameter(API_KEY_PARAM, apIKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        Log.v(TAG, "Built URI " + url);
+
+        return url;
+    }
+
+
+    public static URL buildReviewUrl(String mId, String apIKey) {
+        //Method to build the review URL
+
+        movieIdArg = mId;
+        String bUrl = REVIEW_URL;
+
+
+
+        Uri builtUri = Uri.parse(bUrl).buildUpon()
+                .appendQueryParameter(API_KEY_PARAM, apIKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        Log.v(TAG, "Built URI " + url);
+
+        return url;
+    }
+
+
+
+
+
+
 
     public static URL ValidateUrl(String Sort_URL) {
 

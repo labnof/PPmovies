@@ -4,7 +4,7 @@ package com.example.babatundeanafi.ppmovies.model;
  * Created by babatundeanafi on 23/02/2017.
  */
 
-public class RequestResult {
+public class MovieRequestResult {
 
     private int page;
     private Movie[] results;
@@ -12,13 +12,9 @@ public class RequestResult {
     private int total_pages;
 
 
-    public int getPage() {
-        return page;
-    }
 
-    public void setPage(int page) {
-        this.page = page;
-    }
+
+
 
     public Movie[] getResults() {
         return results;

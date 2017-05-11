@@ -1,5 +1,6 @@
 package com.example.babatundeanafi.ppmovies.views;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -17,13 +18,17 @@ import android.widget.Toast;
 
 import com.example.babatundeanafi.ppmovies.MainActivity;
 import com.example.babatundeanafi.ppmovies.R;
+import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
+import com.example.babatundeanafi.ppmovies.model.MovieRequestResult;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.net.URL;
 
+import static com.example.babatundeanafi.ppmovies.model.database.MovieContentProvider.isFavorite;
 import static com.example.babatundeanafi.ppmovies.model.database.MovieDbContract.MovieEntry.*;
 
 
@@ -154,17 +159,20 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     }
 
+
+
     public void onClickaddMovieToFavorite(View view) {
 
         Button b = (Button)view;
         String bText = b.getText().toString();
         String addText =  getString(R.string.add_favorite);
         String delText = getString(R.string.delete_favorite);
+        //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
 
-        if(bText.equals((addText))) {
 
-            //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
-            Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
+        if((bText.equals((addText)) && (!isFavorite(context, mMovie.getId() )))) {
+
 
 
             FavouriteMovie fMovie = new FavouriteMovie(mMovie.getPoster_path(), mMovie.getOverview(),
@@ -186,5 +194,44 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
     }
+
+
+
+
+
+
+    private String getJsonSortResult(String url) {
+        //methos return Json result from network
+
+        URL sortUrl = NetworkUtils.ValidateUrl(url);
+
+        String themoviedbSortResults = null;
+        try {
+            themoviedbSortResults = NetworkUtils.getResponseFromHttpUrl(sortUrl);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return themoviedbSortResults;
+
+    }
+
+    private Movie[] getMoviesLinks(String NetworkResult) {
+        //Method returns an the array of movies contained in the network result
+
+        Movie[] movies;
+        MovieRequestResult movieRequestResult;
+
+        if (NetworkResult != null && !NetworkResult.equals("")) {
+
+
+          //  movieRequestResult = JsonToMovieObjs.ConvertToResultObject(NetworkResult);
+           // movies = movieRequestResult.getResults();
+          //  return movies;
+        }
+
+
+        return null;
+    }
+
 
 }

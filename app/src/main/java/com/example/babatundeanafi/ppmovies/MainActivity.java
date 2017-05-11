@@ -23,10 +23,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.babatundeanafi.ppmovies.control.FavoriteMovieAdapter;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
-import com.example.babatundeanafi.ppmovies.model.RequestResult;
+import com.example.babatundeanafi.ppmovies.model.MovieRequestResult;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.MoviesPostersAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
@@ -85,13 +84,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         //Method returns an the array of movies contained in the network result
 
         Movie[] movies;
-        RequestResult requestResult;
+        MovieRequestResult movieRequestResult;
 
         if (NetworkResult != null && !NetworkResult.equals("")) {
 
 
-            requestResult = JsonToMovieObjs.ConvertToResultObject(NetworkResult);
-            movies = requestResult.getResults();
+            movieRequestResult = JsonToMovieObjs.ConvertMovieResultToObject(NetworkResult);
+            movies = movieRequestResult.getResults();
             return movies;
         }
 
@@ -160,6 +159,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onResume() {
         super.onResume();  // Always call the superclass method first
        // mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();  // Always call the superclass method first
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
 

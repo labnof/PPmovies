@@ -1,6 +1,7 @@
 package com.example.babatundeanafi.ppmovies.model.database;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -172,6 +173,18 @@ public class MovieContentProvider extends ContentProvider {
         return numDeleted;
 
     }
+
+    public static boolean isFavorite (Context context , int id ){ // Check if movie with passed id is favorite
+        ContentResolver contentResolver = context.getContentResolver();
+        Cursor cursor = contentResolver.query(MovieDbContract.MovieEntry.CONTENT_URI , null , MovieDbContract.MovieEntry.COLUMN_MOVIE_ID  + "=?" , new String []{String.valueOf(id)} , null );
+
+        int found = cursor.getCount();
+
+        cursor.close();
+
+        return found != 0;
+    }
+
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String
