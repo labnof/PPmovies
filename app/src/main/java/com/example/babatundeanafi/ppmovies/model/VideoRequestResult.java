@@ -9,4 +9,8 @@ import com.example.babatundeanafi.ppmovies.model.Video;
 public class VideoRequestResult {
     private int id;
     private Video [] results;
-}
+
+
+    public Video[] getResults() {
+        return results;
+    }  }

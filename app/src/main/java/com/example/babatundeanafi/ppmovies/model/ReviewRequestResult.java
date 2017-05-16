@@ -13,5 +13,6 @@ public class ReviewRequestResult {
     private int total_results;
 
 
-
-}
+    public Review[] getResults() {
+        return results;
+    }  }

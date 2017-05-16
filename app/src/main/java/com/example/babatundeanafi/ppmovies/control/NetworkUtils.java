@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public final class NetworkUtils {
@@ -18,10 +19,11 @@ public final class NetworkUtils {
     private final static String API_KEY_PARAM = "api_key";
 
     //REVIEW AND VIDEO
+    public static final String TRAILERS_PREFIX =  "https://www.youtube.com/watch?v=" ;
     private static final String REVIEW_VIDEO_BASE_URL = "https://api.themoviedb.org/3/movie/";
-    public static String movieIdArg;
-    public static final String VIDEO_URL = REVIEW_VIDEO_BASE_URL+ "/movie/"+ movieIdArg +"/videos";
-    public static final String REVIEW_URL = REVIEW_VIDEO_BASE_URL + "/movie/" + movieIdArg + "/reviews" ;
+    private static int movieIdArg;
+    //private static final String VIDEO_URL = REVIEW_VIDEO_BASE_URL+ "/movie/"+ movieIdArg +"/videos";
+    private static final String REVIEW_URL = REVIEW_VIDEO_BASE_URL + "/movie/" + movieIdArg + "/reviews" ;
 
 
 
@@ -75,15 +77,16 @@ public final class NetworkUtils {
 
 
 
-    public static URL buildVideoUrl(String mId, String apIKey) {
+    public static URL buildVideoUrl(int mId, String apIKey) {
         //Method to build the video URL
 
-        movieIdArg = mId;
-        String bUrl = VIDEO_URL;
+
+        String videoUrl = REVIEW_VIDEO_BASE_URL+ mId +"/videos";
+        AtomicReference<String> bUrl;
+        bUrl = new AtomicReference<>(videoUrl);
 
 
-
-        Uri builtUri = Uri.parse(bUrl).buildUpon()
+        Uri builtUri = Uri.parse(bUrl.get()).buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, apIKey)
                 .build();
 
@@ -100,15 +103,11 @@ public final class NetworkUtils {
     }
 
 
-    public static URL buildReviewUrl(String mId, String apIKey) {
+    public static URL buildReviewUrl(int mId, String apIKey) {
         //Method to build the review URL
 
-        movieIdArg = mId;
-        String bUrl = REVIEW_URL;
-
-
-
-        Uri builtUri = Uri.parse(bUrl).buildUpon()
+        String reviewUrl = REVIEW_VIDEO_BASE_URL+ mId +"/reviews" ;
+        Uri builtUri = Uri.parse(reviewUrl).buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, apIKey)
                 .build();
 
@@ -145,6 +144,9 @@ public final class NetworkUtils {
 
         return url;
     }
+
+
+
 
 
     /**

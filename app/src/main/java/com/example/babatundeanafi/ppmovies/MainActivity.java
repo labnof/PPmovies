@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String SORT_BY_VOTE_AVE_URL = "http://api.themoviedb.org/3/movie/top_rated?";
     boolean mNetworkAvailable = FALSE;
 
-    private String mMovieDBApiKey;
+    public static  String mMovieDBApiKey;
     private TextView mErrorMessageDisplay; //TextView variable for the error message display
     private ProgressBar mLoadingIndicator; //ProgressBar variable to show and hide the progress bar
     private GridView mGridView;
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             });
 
         } else {
-            //If the array list of movies poster data is null, show the error message
+            //If the array list_video of movies poster data is null, show the error message
             showErrorMessage();
         }
     }
@@ -435,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 });
 
             } else {
-                //If the array list of movies poster data is null, show the error message
+                //If the array list_video of movies poster data is null, show the error message
                 showErrorMessage();
             }
 
