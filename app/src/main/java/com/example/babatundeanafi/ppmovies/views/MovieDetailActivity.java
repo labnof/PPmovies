@@ -22,6 +22,7 @@ import com.example.babatundeanafi.ppmovies.MainActivity;
 import com.example.babatundeanafi.ppmovies.R;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
+import com.example.babatundeanafi.ppmovies.control.ReviewRecyclerViewAdapter;
 import com.example.babatundeanafi.ppmovies.control.VideoRecyclerViewAdapter;
 import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
 import com.example.babatundeanafi.ppmovies.model.Movie;
@@ -52,14 +53,16 @@ public class MovieDetailActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Video[]> {
 
 
-    Context context;
+    Context mdContext;
     Button button;
     private List<Video> videoList = new ArrayList<>();
+    protected List<Review> reviewList;
     private RecyclerView videoRecyclerView;
-    private RecyclerView reviewRecyclerView;
-    private VideoRecyclerViewAdapter mAdapter;
+    protected RecyclerView reviewRecyclerView;
+    private VideoRecyclerViewAdapter mVideoAdapter;
+    public ReviewRecyclerViewAdapter mReviewAdapter;
     private static final int VIDEO_MOVIE_LOADER_ID = 20;
-    private static final int _MOVIE_LOADER_ID = 21;
+    private static final int REVIEW_MOVIE_LOADER_ID = 21;
 
     Movie mMovie;
     FavouriteMovie fMovie;
@@ -81,11 +84,12 @@ public class MovieDetailActivity extends AppCompatActivity implements
         button = (Button) findViewById(R.id.addFavorite_button);
         videoRecyclerView = (RecyclerView) findViewById(R.id.list_video);
         reviewRecyclerView = (RecyclerView) findViewById(R.id.list_reviews);
+        reviewList = new ArrayList<>();
 
 
         if (getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL) != null) {
             mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
-            context = getApplication();
+            mdContext = getApplication();
 
             mTittle.setText(mMovie.getTitle());
             mReleaseDate.setText(mMovie.getRelease_date());
@@ -95,20 +99,21 @@ public class MovieDetailActivity extends AppCompatActivity implements
 
 
             //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
-            Picasso.with(context)
+            Picasso.with(mdContext)
                     .load(mPosterPath)
                     .placeholder(R.mipmap.ic_launcher)
                     .error(R.mipmap.ic_launcher)
                     .into(mImageView);
 
             getVideos(mMovie.getId());
+            getReviews(mMovie.getId());
 
 
         } else {
 
             //Movie mMovie = (Movie) getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
             FavouriteMovie fMovie = getIntent().getParcelableExtra(MainActivity.FAVOURITE_MOVIE_DETAIL);
-            context = getApplication();
+            mdContext = getApplication();
 
             mTittle.setText(fMovie.getOriginal_title());
             mReleaseDate.setText(fMovie.getRelease_date());
@@ -120,13 +125,14 @@ public class MovieDetailActivity extends AppCompatActivity implements
 
 
             //reference: https://futurestud.io/tutorials/picasso-placeholders-errors-and-fading
-            Picasso.with(context)
+            Picasso.with(mdContext)
                     .load(mPosterPath)
                     .placeholder(R.mipmap.ic_launcher)
                     .error(R.mipmap.ic_launcher)
                     .into(mImageView);
 
             getVideos(fMovie.getId());
+            getReviews(fMovie.getId());
 
         }
 
@@ -199,7 +205,7 @@ public class MovieDetailActivity extends AppCompatActivity implements
         Movie mMovie = getIntent().getParcelableExtra(MainActivity.MOVIE_DETAIL);
 
 
-        if ((bText.equals((addText)) && (!isFavorite(context, mMovie.getId())))) {
+        if ((bText.equals((addText)) && (!isFavorite(mdContext, mMovie.getId())))) {
 
 
             FavouriteMovie fMovie = new FavouriteMovie(mMovie.getPoster_path(), mMovie.getOverview(),
@@ -268,7 +274,8 @@ public class MovieDetailActivity extends AppCompatActivity implements
                     return null;
                 } else {
 
-                    String url = MoviesURLString;
+                    String url;
+                    url = MoviesURLString;
                     return getVideosLinks(getJsonVideoResult(url));
 
                 }
@@ -280,7 +287,6 @@ public class MovieDetailActivity extends AppCompatActivity implements
             public void onStartLoading() {
                 super.onStartLoading();
                 if (args == null) {
-                    return;
                 }
 
             }
@@ -295,11 +301,11 @@ public class MovieDetailActivity extends AppCompatActivity implements
 
         videoList = Arrays.asList(data);
 
-        mAdapter = new VideoRecyclerViewAdapter(videoList);
+        mVideoAdapter = new VideoRecyclerViewAdapter(videoList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         videoRecyclerView.setLayoutManager(mLayoutManager);
         videoRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        videoRecyclerView.setAdapter(mAdapter);
+        videoRecyclerView.setAdapter(mVideoAdapter);
 
 
     }
@@ -310,7 +316,7 @@ public class MovieDetailActivity extends AppCompatActivity implements
     }
 
 
-    // get sort movies from network
+    // get Videos from network
     private void getVideos(int videoId) {
         //Loader
 
@@ -353,14 +359,49 @@ public class MovieDetailActivity extends AppCompatActivity implements
     private LoaderManager.LoaderCallbacks<Review[]> dataResultLoaderListener
             = new LoaderManager.LoaderCallbacks<Review[]>() {
         @Override
-        public Loader<Review[]> onCreateLoader(int id, Bundle args) {
-            return null;
+        public Loader<Review[]> onCreateLoader(int id, final Bundle args) {
+            return new AsyncTaskLoader<Review[]>(mdContext) {
+                @Override
+                public Review[] loadInBackground() {
+                    String MoviesURLString = args.getString(REVIEW_LOADER_EXTRA);
+                    if (MoviesURLString == null || TextUtils.isEmpty(MoviesURLString)) {
+                        return null;
+                    } else {
+
+                        String url = MoviesURLString;
+                        return getReviewLinks(getJsonReviewResult(url));
+
+                    }
+                }
+
+                @Override
+                public void onStartLoading() {
+                    super.onStartLoading();
+                    if (args == null) {
+                        return;
+                    }
+
+                }
+            };
         }
+
+
+
+
 
         @Override
-        public void onLoadFinished(Loader<Review[]> loader, Review[] data) {
+        public void onLoadFinished(Loader<Review[]> loader, Review[] data) {// Video videoRecyclerView
+
+
+            reviewList = Arrays.asList(data);
+            mReviewAdapter = new ReviewRecyclerViewAdapter(reviewList);
+            RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+            reviewRecyclerView.setLayoutManager(mLayoutManager);
+            reviewRecyclerView.setItemAnimator(new DefaultItemAnimator());
+            reviewRecyclerView.setAdapter(mReviewAdapter);
 
         }
+
 
         @Override
         public void onLoaderReset(Loader<Review[]> loader) {
@@ -370,32 +411,28 @@ public class MovieDetailActivity extends AppCompatActivity implements
 
 
 
+    // get Videos from network
+    private void getReviews(int videoId) {
+        //Loader
+
+        URL url1 = NetworkUtils.buildReviewUrl(videoId, mMovieDBApiKey);
+        URL url = NetworkUtils.ValidateUrl(url1.toString());
 
 
+        Bundle queryBundle = new Bundle();
+        queryBundle.putString(REVIEW_LOADER_EXTRA, url.toString());
+
+        LoaderManager mLoaderManager = getSupportLoaderManager();
+        Loader<Video[]> mLoader = mLoaderManager.getLoader(REVIEW_MOVIE_LOADER_ID);
 
 
+        if (mLoader == null) {
+            mLoaderManager.initLoader(REVIEW_MOVIE_LOADER_ID, queryBundle, dataResultLoaderListener).forceLoad();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        } else {
+            mLoaderManager.restartLoader(REVIEW_MOVIE_LOADER_ID, queryBundle, dataResultLoaderListener).forceLoad();
+        }
+    }
 
 
 

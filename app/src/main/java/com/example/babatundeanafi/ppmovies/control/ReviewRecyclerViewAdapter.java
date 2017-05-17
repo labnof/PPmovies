@@ -75,7 +75,7 @@ public class ReviewRecyclerViewAdapter extends RecyclerView.Adapter<ReviewRecycl
     public void onBindViewHolder(MyViewHolder holder, int position) {
 
         Review review = reviewList.get(position);
-        holder.author.setText(review.getAuthor());
+        holder.author.setText(String.format("%s: ", review.getAuthor()));
         holder.content.setText(review.getContent());
 
 

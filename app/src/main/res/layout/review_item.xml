@@ -6,15 +6,19 @@
     android:orientation="horizontal">
     <TextView
         android:text="@string/author"
-        android:layout_width="wrap_content"
-        android:textSize="22sp"
+        android:layout_width="172dp"
+        android:textSize="16sp"
+        android:textColor="@color/TittleColor"
+        android:textColorHighlight="#B2DFDB"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:padding="8dp"
         android:id="@+id/reviewer" />
     <TextView
         android:text="@string/content_string"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:textSize="16sp"
