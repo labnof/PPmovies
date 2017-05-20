@@ -25,12 +25,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
-import com.example.babatundeanafi.ppmovies.model.Movie;
-import com.example.babatundeanafi.ppmovies.model.MovieRequestResult;
 import com.example.babatundeanafi.ppmovies.control.JsonToMovieObjs;
 import com.example.babatundeanafi.ppmovies.control.MoviesPostersAdapter;
 import com.example.babatundeanafi.ppmovies.control.NetworkUtils;
+import com.example.babatundeanafi.ppmovies.model.FavouriteMovie;
+import com.example.babatundeanafi.ppmovies.model.Movie;
+import com.example.babatundeanafi.ppmovies.model.MovieRequestResult;
 import com.example.babatundeanafi.ppmovies.model.database.MovieDbContract;
 import com.example.babatundeanafi.ppmovies.model.database.MovieDbHelper;
 import com.example.babatundeanafi.ppmovies.views.MovieDetailActivity;
@@ -52,8 +52,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int FAVOURITE_MOVIE_LOADER_ID = 2;
 
 
-
-   private String[] posterArray;// Array to save the list of poster URl
+    private String[] posterArray;// Array to save the list of poster URl
+    private Movie[] mMovies;
+    private FavouriteMovie[] mFavouriteMovie;
 
 
     public static final String MOVIE_DETAIL = "com.example.PPmovies.Detail";
@@ -62,13 +63,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int MOVIES_DB_LOADER = 29;//Loader indentify
     private static final String SORT_BY_PP_URL = "http://api.themoviedb.org/3/movie/popular?";
     private static final String SORT_BY_VOTE_AVE_URL = "http://api.themoviedb.org/3/movie/top_rated?";
-    private static final String TOP_RATED_MOVIE_STATE_KEY = "toprated";
-    private static final String FAVOURITE_MOVIE_STATE_KEY = "favourites";
+    private static final String GRID_VIEW_STATE_KEY = "movies";
     private static final String POP_MOVIE_STATE_KEY = "popmovies";
-    private Parcelable state;//save insatance state
+
+    private static final String MOVIE_STATE_KEY = "popmovies";
+    private static final String FAVOURITE_MOVIE_STATE_KEY = "favorite_movies";
+
+
+
+
     boolean mNetworkAvailable = FALSE;
 
-    public static  String mMovieDBApiKey;
+    public static String mMovieDBApiKey;
     private TextView mErrorMessageDisplay; //TextView variable for the error message display
     private ProgressBar mLoadingIndicator; //ProgressBar variable to show and hide the progress bar
     private GridView mGridView;
@@ -127,11 +133,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return null;
 
     }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(POP_MOVIE_STATE_KEY , mGridView.onSaveInstanceState());
-    }
+
+
+
+        outState.putParcelable(POP_MOVIE_STATE_KEY, mGridView.onSaveInstanceState());
+        outState.putStringArray(GRID_VIEW_STATE_KEY, posterArray);
+        outState.putParcelableArray(MOVIE_STATE_KEY , mMovies);
+        outState.putParcelableArray(FAVOURITE_MOVIE_STATE_KEY, mFavouriteMovie);
+
+
+           }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -145,14 +160,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-
-
+    Parcelable state;//save insatance state
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
+        mGridView = (GridView) findViewById(R.id.usage_example_gridview);
         /* This TextView is used to display errors and will be hidden if there are no errors */
         mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
         /*
@@ -172,27 +187,55 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         // checks if internet is available and deplays posters and shows error if no internet
         mNetworkAvailable = isNetworkAvailable();
+        if (savedInstanceState != null) {
+
+            mMovies = (Movie[]) savedInstanceState.getParcelableArray(MOVIE_STATE_KEY);
+            mFavouriteMovie = (FavouriteMovie[]) savedInstanceState.getParcelableArray(FAVOURITE_MOVIE_STATE_KEY);
+            state = savedInstanceState.getParcelable(POP_MOVIE_STATE_KEY);// state of list scroll
+
+            if ((mMovies != null) && (mNetworkAvailable == TRUE)) {
+
+                posterArray = savedInstanceState.getStringArray(GRID_VIEW_STATE_KEY); // state of list view
+                mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+
+                if (state != null) {
+                    mGridView.onRestoreInstanceState(state);
+                }
 
 
-        if(savedInstanceState!=null) {
-            state = savedInstanceState.getParcelable(POP_MOVIE_STATE_KEY );
-            mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
-            mGridView.onRestoreInstanceState(state);
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
+                GridViewOnclick(mMovies);
+
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+
+            } else if ((mFavouriteMovie != null) && (mNetworkAvailable == TRUE)) {
+
+                state = savedInstanceState.getParcelable(POP_MOVIE_STATE_KEY);// state of list scroll
+                posterArray = savedInstanceState.getStringArray(GRID_VIEW_STATE_KEY); // state of list view
+                mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+                if (state != null) {
+                    mGridView.onRestoreInstanceState(state);
+                }
+                GridViewOnclick(mFavouriteMovie);
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
+            }
         }
 
         else if (mNetworkAvailable == TRUE) {
+
             getSortMovies(SORT_BY_PP_URL);//gets the most popular movies
-        } else {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+      }
+
+        else {
             showErrorMessage();
         }
-
     }
 
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
-       // mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
 
@@ -208,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onStart() {
         super.onStart();  // Always call the superclass method first
 
-       // mLoadingIndicator.setVisibility(View.INVISIBLE);
+        // mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
 
@@ -270,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
         LoaderManager mLoaderManager = getSupportLoaderManager();
-        Loader<Cursor> mLoader = mLoaderManager.getLoader(FAVOURITE_MOVIE_LOADER_ID );
+        Loader<Cursor> mLoader = mLoaderManager.getLoader(FAVOURITE_MOVIE_LOADER_ID);
 
 
         if (mLoader == null) {
@@ -321,11 +364,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
 
         ArrayList<String> results;
+        mMovies = movies;
 
 
-        if (movies != null && movies.length != 0) {
+        if (mMovies != null && mMovies.length != 0) {
 
-            results = getPosterPaths(movies);
+            results = getPosterPaths(mMovies);
 
 
             posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
@@ -333,21 +377,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
             mLoadingIndicator.setVisibility(View.INVISIBLE);
+            GridViewOnclick( mMovies);
 
-
-            //Grid View setOnItemClickListener that leads to detail page
-            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v,
-                                        int position, long id) {
-
-
-                    PacelableMethod(movies, position);
-
-
-                    Toast.makeText(MainActivity.this, "" + position,
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
 
         } else {
             //If the array list_video of movies poster data is null, show the error message
@@ -361,9 +392,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
-
     //favourie movie loader
-    private LoaderManager.LoaderCallbacks<Cursor> dataResultLoaderListener
+    public LoaderManager.LoaderCallbacks<Cursor> dataResultLoaderListener
             = new LoaderManager.LoaderCallbacks<Cursor>() {
 
         @Override
@@ -417,9 +447,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
 
-
-
-
         private ArrayList<String> getPosterPaths(ArrayList<FavouriteMovie> m) {
 
             ArrayList<String> PosterPaths = new ArrayList<>();
@@ -440,53 +467,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return null;
 
         }
+
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-            final ArrayList<FavouriteMovie> results;
-            final ArrayList<String> poster_paths;
+       if (data != null && data.getCount() != 0) {
 
 
+           ArrayList<FavouriteMovie> mFavouriteM = MovieDbHelper.getListOfFavouriteMovies1(data);
+                ArrayList<String> poster_paths = getPosterPaths(mFavouriteM);
 
 
-            if (data != null && data.getCount() != 0) {
-
-
-
-                results =  MovieDbHelper.getListOfFavouriteMovies1(data);
-                poster_paths = getPosterPaths(results);
-
-
-
-                String[] posterArray = new String[results != null ? results.size() : 0];// initialize string array to size of result
+                posterArray = new String[mFavouriteM != null ? mFavouriteM.size() : 0];// initialize string array to size of result
                 posterArray = poster_paths != null ? poster_paths.toArray(posterArray) : new String[0];
 
                 mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
                 mLoadingIndicator.setVisibility(View.INVISIBLE);
 
+           mFavouriteMovie = new FavouriteMovie[mFavouriteM != null ? mFavouriteM.size() : 0];// initialize string array to size of result
+           mFavouriteMovie = mFavouriteM != null ? mFavouriteM.toArray(mFavouriteMovie) : new FavouriteMovie[0];
+           GridViewOnclick(mFavouriteMovie);
 
-                //Grid View setOnItemClickListener that leads to detail page
-                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    public void onItemClick(AdapterView<?> parent, View v,
-                                            int position, long id) {
-
-
-                        FavouriteMovie[] sResults = new FavouriteMovie[results != null ? results.size() : 0];// initialize string array to size of result
-                        sResults = results != null ? results.toArray(sResults) : new FavouriteMovie[0];
-                        PacelableMethod(sResults, position);
-
-
-
-                        Toast.makeText(MainActivity.this, "" + position,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
 
             } else {
                 //If the array list_video of movies poster data is null, show the error message
                 showErrorMessage();
             }
-
 
 
         }
@@ -496,7 +502,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         }
     };
-
 
 
     private void showErrorMessage() {
@@ -564,5 +569,48 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         startActivity(mIntent);
     }
+
+
+
+    public void GridViewOnclick(final Movie[] m){
+
+        //Grid View setOnItemClickListener that leads to detail page
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+
+
+                PacelableMethod(m, position);
+
+
+                Toast.makeText(MainActivity.this, "" + position,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+
+    public void GridViewOnclick( final FavouriteMovie[] fm){
+
+        //Grid View setOnItemClickListener that leads to detail page
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+
+
+                PacelableMethod(fm, position);
+
+
+                Toast.makeText(MainActivity.this, "" + position,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+
+
+
 
 }
