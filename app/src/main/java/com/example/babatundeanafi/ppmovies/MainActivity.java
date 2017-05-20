@@ -2,11 +2,13 @@ package com.example.babatundeanafi.ppmovies;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -51,12 +53,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
 
+   private String[] posterArray;// Array to save the list of poster URl
+
+
     public static final String MOVIE_DETAIL = "com.example.PPmovies.Detail";
     public static final String FAVOURITE_MOVIE_DETAIL = "com.example.PPmovies.Favourite.Detail";
     public static final String MOVIES_LOADER_EXTRA = "com.example.PPmovies.MoviesLoader";
     private static final int MOVIES_DB_LOADER = 29;//Loader indentify
     private static final String SORT_BY_PP_URL = "http://api.themoviedb.org/3/movie/popular?";
     private static final String SORT_BY_VOTE_AVE_URL = "http://api.themoviedb.org/3/movie/top_rated?";
+    private static final String TOP_RATED_MOVIE_STATE_KEY = "toprated";
+    private static final String FAVOURITE_MOVIE_STATE_KEY = "favourites";
+    private static final String POP_MOVIE_STATE_KEY = "popmovies";
+    private Parcelable state;//save insatance state
     boolean mNetworkAvailable = FALSE;
 
     public static  String mMovieDBApiKey;
@@ -118,7 +127,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return null;
 
     }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(POP_MOVIE_STATE_KEY , mGridView.onSaveInstanceState());
+    }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(MainActivity.this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Toast.makeText(MainActivity.this, "portrait", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 
 
@@ -147,7 +172,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         // checks if internet is available and deplays posters and shows error if no internet
         mNetworkAvailable = isNetworkAvailable();
-        if (mNetworkAvailable == TRUE) {
+
+
+        if(savedInstanceState!=null) {
+            state = savedInstanceState.getParcelable(POP_MOVIE_STATE_KEY );
+            mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
+            mGridView.onRestoreInstanceState(state);
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+        }
+
+        else if (mNetworkAvailable == TRUE) {
             getSortMovies(SORT_BY_PP_URL);//gets the most popular movies
         } else {
             showErrorMessage();
@@ -165,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onRestart() {
         super.onRestart();  // Always call the superclass method first
+
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
@@ -174,6 +209,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onStart();  // Always call the superclass method first
 
        // mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();  // Always call the superclass method first
+
+
+        // mLoadingIndicator.setVisibility(View.INVISIBLE);
 
     }
 
@@ -200,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         URL url = NetworkUtils.ValidateUrl(url1.toString());
         mGridView = (GridView) findViewById(R.id.usage_example_gridview);
 
+
         Bundle queryBundle = new Bundle();
         queryBundle.putString(MOVIES_LOADER_EXTRA, url.toString());
 
@@ -213,6 +258,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         } else {
             mLoaderManager.restartLoader(MOVIES_DB_LOADER, queryBundle, this).forceLoad();
         }
+
+
     }
 
     // get sort movies from DB
@@ -234,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mLoaderManager.restartLoader(FAVOURITE_MOVIE_LOADER_ID, null, dataResultLoaderListener)
                     .forceLoad();
         }
+
     }
 
     @Override
@@ -280,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             results = getPosterPaths(movies);
 
 
-            String[] posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
+            posterArray = new String[results != null ? results.size() : 0];// initialize sting array to size of result
             posterArray = results != null ? results.toArray(posterArray) : new String[0];
 
             mGridView.setAdapter(new MoviesPostersAdapter(mContext, posterArray));
