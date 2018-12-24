@@ -5,3 +5,6 @@ This application allows users to view popular and highly rated movie. It display
 
 ##About the API and API key
 This application uses data from  Movie Database's API. For details on the API's and how to acquire an API key visit please visit :https://www.themoviedb.org/documentation/api.
+
+
+Latter I will make some changes 
